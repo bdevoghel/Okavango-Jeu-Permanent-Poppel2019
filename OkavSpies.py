@@ -19,15 +19,16 @@ saveState = False
 
 if newGame:
     setLCI(0)
+    setLCI(0) # LastComputedIteration = 0
 else:
-    with open('pickels/factions_upToIterX.pkl', 'rb') as infile: # DEFINE X !
+    with open('pickles/factions_upToIterX.pkl', 'rb') as infile: # DEFINE X !
         factions = pickle.load(infile)
     staff = factions[0]
     pumas = factions[1]
     grizzlis = factions[2]
     cobras = factions[3]
     jaguars = factions[4]
-    with open('pickels/util_upToIterX.pkl', 'rb') as infile: # DEFINE X !
+    with open('pickles/util_upToIterX.pkl', 'rb') as infile: # DEFINE X !
         util = pickle.load(infile)
     setLCI(util[0])
 
@@ -44,22 +45,22 @@ if saveState:
     print('Are you sure you want to save the new state up to iteration ' + str(getLCI()) + ' ? (yes/no)')
     userInput = input()
     if userInput == 'yes':
-        factionsFileName = 'pickels/factions_upToIter' + str(getLCI()) + '.pkl'
+        factionsFileName = 'pickles/factions_upToIter' + str(getLCI()) + '.pkl'
         with open(factionsFileName, 'wb') as outfile:
             pickle.dump(factions, outfile, pickle.HIGHEST_PROTOCOL)
-        utilFileName = 'pickels/util_upToIter' + str(getLCI()) + '.pkl'
+        utilFileName = 'pickles/util_upToIter' + str(getLCI()) + '.pkl'
         with open(utilFileName, 'wb') as outfile:
             pickle.dump([getLCI()], outfile, pickle.HIGHEST_PROTOCOL)
-        print('Stated saved up to iteration ' + str(getLCI()) )
+        print('State saved up to iteration ' + str(getLCI()) )
     else:
-        print('Stated not saved')
+        print('State not saved - Pickles unchanged')
 
 
 #######################################################################################################################
 ######################################################## TESTS ########################################################
 #######################################################################################################################
 
-
+'''
 advanceUntil(15, 1, 1)
 
 staff.agents[5].recruit('Spatial')
@@ -80,7 +81,6 @@ advanceUntil(15, 12, 1)
 staff.invest('Alimentaire', 10000000)
 pumas.invest('HighTech',    10000000)
 
-'''
 
 advanceUntil(16, 0, 1)
 
@@ -103,6 +103,8 @@ print('money staff :', factions[0].money[getLCI()])
 print('money pumas :', factions[1].money[getLCI()])
 
 '''
+
+
 plt.figure(1)
 plt.suptitle('Staff')
 plotMoney = plt.subplot(511)

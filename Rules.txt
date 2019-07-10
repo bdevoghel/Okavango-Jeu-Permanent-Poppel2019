@@ -1,0 +1,5 @@
+DOMAINS = ['Tech', 'Militaire', 'Ressources', 'Art', 'Contre-espionnage']
+FACTIONS = ['Staff', 'Pumas', 'Grizzlis', 'Cobras', 'Jaguars']
+startMoney = 10 * 10^6
+
+recruit : in new domain or in other domain (with skill then divided by 2)
