@@ -1,5 +1,8 @@
-DOMAINS = ['Tech', 'Militaire', 'Ressources', 'Art', 'Contre-espionnage']
+DOMAINS = ['Tech', 'Militaire', 'Ressources', 'Art', 'Contre-espionnage'] # domaines technique dans lesquels les espions se spécialisent
 FACTIONS = ['Staff', 'Pumas', 'Grizzlis', 'Cobras', 'Jaguars']
-startMoney = 10 * 10^6
+startMoney = 1000 #10 * 10^6
+startValueDomain = 1000
+budgetDeplationRate = 80 # percent per day (fine tuned for value:80)
+
 
 recruit : in new domain or in other domain (with skill then divided by 2)

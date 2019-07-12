@@ -35,9 +35,17 @@ else:
 
 #######################################################################################################################
 
-advanceUntil(15, 18, 46)
-staff.invest('HighTech', 10000000)
-advanceUntil(16, 10, 45)
+advanceUntil(15, 10, 0)
+staff.invest(Tech, 100)
+staff.invest(Art, 100)
+pumas.invest(Militaire,100)
+advanceUntil(16, 10, 0)
+# staff.money[getLCI()] += 100
+# advanceUntil(17, 10, 0)
+
+
+
+# advanceUntil(29, 0, 0)
 
 #######################################################################################################################
 
@@ -63,13 +71,13 @@ if saveState:
 '''
 advanceUntil(15, 1, 1)
 
-staff.agents[5].recruit('Spatial')
+staff.agents[5].recruit('Military')
 staff.agents[5].train(5)
 staff.agents[5].deploy('Pumas')
 # print(staff.agents[5])
 staff.agents[5].extract()
 # staff.agents[2].deploy('Jaguars') # UserWarning: Failed to deploy Ocelot : agent not initiated
-staff.agents[3].recruit('HighTech')
+staff.agents[3].recruit('Tech')
 staff.agents[3].deploy('Jaguars')
 
 # print(staff)
@@ -78,24 +86,24 @@ staff.agents[3].deploy('Jaguars')
 
 advanceUntil(15, 12, 1)
 
-staff.invest('Alimentaire', 10000000)
-pumas.invest('HighTech',    10000000)
+staff.invest('Art', 10000000)
+pumas.invest('Tech',    10000000)
 
 
 advanceUntil(16, 0, 1)
 
-staff.invest('Alimentaire', 6000000)
-pumas.invest('HighTech',    6000000)
+staff.invest('Art', 6000000)
+pumas.invest('Tech',    6000000)
 
 advanceUntil(17, 0, 1)
 
-staff.invest('Spatial',  17000000)
-pumas.invest('HighTech', 6000000)
+staff.invest('Military',  17000000)
+pumas.invest('Tech', 6000000)
 
 advanceUntil(18, 0, 1)
 
-staff.invest('Spatial', 15000000)
-pumas.invest('HighTech', 6000000)
+staff.invest('Military', 15000000)
+pumas.invest('Tech', 6000000)
 
 advanceUntil(20, 0, 1)
 
@@ -103,51 +111,61 @@ print('money staff :', factions[0].money[getLCI()])
 print('money pumas :', factions[1].money[getLCI()])
 
 '''
+for f in range(len(factions)):
+    plt.figure(f)
+    plt.suptitle(factions[f].name)
+    plotMoney = plt.subplot(611)
+    plt.plot(t[1:getLCI()], factions[f].money[1:getLCI()])
+    plt.setp(plotMoney.get_xticklabels(), visible=False)
+    plt.ylabel('$')
+    plotTech = plt.subplot(612, sharex=plotMoney)
+    plt.plot(t[1:getLCI()], factions[f].tech[1:getLCI()])
+    plt.setp(plotTech.get_xticklabels(), visible=False)
+    plt.ylabel('Tech')
+    plotMilitary = plt.subplot(613, sharex=plotMoney)
+    plt.plot(t[1:getLCI()], factions[f].military[1:getLCI()])
+    plt.setp(plotMilitary.get_xticklabels(), visible=False)
+    plt.ylabel('Mil')
+    plotRessources = plt.subplot(614, sharex=plotMoney)
+    plt.plot(t[1:getLCI()], factions[f].ressources[1:getLCI()])
+    plt.setp(plotRessources.get_xticklabels(), visible=False)
+    plt.ylabel('Res')
+    plotArt = plt.subplot(615, sharex=plotMoney)
+    plt.plot(t[1:getLCI()], factions[f].art[1:getLCI()])
+    plt.setp(plotArt.get_xticklabels(), visible=False)
+    plt.ylabel('Art')
+    plotCounterIntel = plt.subplot(616, sharex=plotMoney)
+    plt.plot(t[1:getLCI()], factions[f].counterIntel[1:getLCI()])
+    plt.setp(plotCounterIntel.get_xticklabels(), visible=True)
+    plt.ylabel('CE')
 
-
-plt.figure(1)
-plt.suptitle('Staff')
-plotMoney = plt.subplot(511)
-plt.plot(t[1:getLCI()], staff.money[1:getLCI()])
-plt.setp(plotMoney.get_xticklabels(), visible=False)
-plt.ylabel('Money')
-plotTech = plt.subplot(512, sharex=plotMoney)
-plt.plot(t[1:getLCI()], staff.tech[1:getLCI()])
-plt.setp(plotTech.get_xticklabels(), visible=False)
-plt.ylabel('Tech')
-plotSpatial = plt.subplot(513, sharex=plotMoney)
-plt.plot(t[1:getLCI()], staff.spatial[1:getLCI()])
-plt.setp(plotSpatial.get_xticklabels(), visible=False)
-plt.ylabel('Spatial')
-plotFood = plt.subplot(514, sharex=plotMoney)
-plt.plot(t[1:getLCI()], staff.food[1:getLCI()])
-plt.setp(plotFood.get_xticklabels(), visible=False)
-plt.ylabel('Food')
-plotMilitary = plt.subplot(515, sharex=plotMoney)
-plt.plot(t[1:getLCI()], staff.military[1:getLCI()])
-plt.ylabel('Military')
-
+'''
 plt.figure(2)
 plt.suptitle('Pumas')
 plotMoney = plt.subplot(511)
 plt.plot(t[1:getLCI()], pumas.money[1:getLCI()])
 plt.setp(plotMoney.get_xticklabels(), visible=False)
-plt.ylabel('Money')
+plt.ylabel('Fonds')
 plotTech = plt.subplot(512, sharex=plotMoney)
 plt.plot(t[1:getLCI()], pumas.tech[1:getLCI()])
 plt.setp(plotTech.get_xticklabels(), visible=False)
-plt.ylabel('Tech')
-plotSpatial = plt.subplot(513, sharex=plotMoney)
-plt.plot(t[1:getLCI()], pumas.spatial[1:getLCI()])
-plt.setp(plotSpatial.get_xticklabels(), visible=False)
-plt.ylabel('Spatial')
-plotFood = plt.subplot(514, sharex=plotMoney)
-plt.plot(t[1:getLCI()], pumas.food[1:getLCI()])
-plt.setp(plotFood.get_xticklabels(), visible=False)
-plt.ylabel('Food')
-plotMilitary = plt.subplot(515, sharex=plotMoney)
+plt.ylabel('Technologie')
+plotMilitary = plt.subplot(513, sharex=plotMoney)
 plt.plot(t[1:getLCI()], pumas.military[1:getLCI()])
-plt.ylabel('Military')
+plt.setp(plotMilitary.get_xticklabels(), visible=False)
+plt.ylabel('Militaire')
+plotRessources = plt.subplot(514, sharex=plotMoney)
+plt.plot(t[1:getLCI()], pumas.ressources[1:getLCI()])
+plt.setp(plotRessources.get_xticklabels(), visible=False)
+plt.ylabel('Ressources')
+plotArt = plt.subplot(514, sharex=plotMoney)
+plt.plot(t[1:getLCI()], pumas.art[1:getLCI()])
+plt.setp(plotRessources.get_xticklabels(), visible=False)
+plt.ylabel('Art')
+plotCounterIntel = plt.subplot(515, sharex=plotMoney)
+plt.plot(t[1:getLCI()], pumas.counterIntel[1:getLCI()])
+plt.ylabel('Countre-espionnage')
+'''
 
 plt.show()
 

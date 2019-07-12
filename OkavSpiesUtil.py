@@ -8,13 +8,20 @@ from termcolor import cprint # for warnings
 
 dayStart = 15 # jour début du jeu (0h00)
 dayEnd = 28 # jour fin du jeu (23h59)
-dt = 15 # [min]
+dt = 60 # [min] (fine tuned for value:60)
 t = np.arange(dayStart, dayEnd+1.01, dt/1440)
-iterations = int((dayEnd - dayStart + 1) * 24 * (60/dt)) # TODO final variale (unmodified)
+iterations = int((dayEnd - dayStart + 1) * 24 * (60/dt))
 
 DOMAINS = ['Tech', 'Militaire', 'Ressources', 'Art', 'Contre-espionnage'] # domaines technique dans lesquels les espions se spécialisent
+Tech = 0
+Militaire = 1
+Ressources = 2
+Art = 3
+CountreEspionnage = 4
 FACTIONS = ['Staff', 'Pumas', 'Grizzlis', 'Cobras', 'Jaguars']
-startMoney = 10 * 10^6
+startMoney = 1000 #10 * 10^6
+startValueDomain = 1000
+budgetDeplationRate = 80 # percent per day (fine tuned for value:80)
 
 STATE_NOT_INIT = 0
 STATE_STAND_BY = 1
@@ -153,13 +160,13 @@ class Faction:
         self.money = np.zeros(iterations+1)
         self.money[0] = startMoney
         self.tech = np.zeros(iterations+1)
-        self.tech[0] = 1000
+        self.tech[0] = startValueDomain
         self.military = np.zeros(iterations+1)
-        self.military[0] = 1000
+        self.military[0] = startValueDomain
         self.ressources = np.zeros(iterations+1)
-        self.ressources[0] = 1000
+        self.ressources[0] = startValueDomain
         self.art = np.zeros(iterations+1)
-        self.art[0] = 1000
+        self.art[0] = startValueDomain
         self.counterIntel = np.zeros(iterations+1)
         self.counterIntel[0] = 0
             
@@ -173,30 +180,30 @@ class Faction:
     # investi dans un des domaines
     # allouer du budget au contre-espionnage diminue fortement la précision des données si spyGroup se fait espionner
     def invest(self, domain, budget):
-        if domain not in DOMAINS:
-            cprint('Failed to invest : ' + domain + ' not recognised', 'red', attrs=['bold', 'reverse'])
+        if domain > len(DOMAINS):
+            cprint('Failed to invest : ' + str(domain) + ' not recognised', 'red', attrs=['bold', 'reverse'])
         elif budget > self.money[lastComputedIteration]:
             cprint('Failed to invest : not enough funds', 'red', attrs=['bold', 'reverse'])
-        elif domain == DOMAINS[0]:
+        elif domain == 0:
             self.techBudget += budget
             self.money[lastComputedIteration] -= budget
-            print(self.name + ' invested ' + budget + ' in ' + domain)
-        elif domain == DOMAINS[1]:
+            print(self.name + ' invested ' + str(budget) + ' in Tech')
+        elif domain == 1:
             self.militaryBudget += budget
             self.money[lastComputedIteration] -= budget
-            print(self.name + ' invested ' + budget + ' in ' + domain)
-        elif domain == DOMAINS[2]:
+            print(self.name + ' invested ' + str(budget) + ' in Military')
+        elif domain == 2:
             self.ressourcesBudget += budget
             self.money[lastComputedIteration] -= budget
-            print(self.name + ' invested ' + budget + ' in ' + domain)
-        elif domain == DOMAINS[3]:
+            print(self.name + ' invested ' + str(budget) + ' in Ressources')
+        elif domain == 3:
             self.artBudget += budget
             self.money[lastComputedIteration] -= budget
-            print(self.name + ' invested ' + budget + ' in ' + domain)
-        elif domain == DOMAINS[4]:
+            print(self.name + ' invested ' + str(budget) + ' in Art')
+        elif domain == 4:
             self.counterIntelBudget += budget
             self.money[lastComputedIteration] -= budget
-            print(self.name + ' invested ' + budget + ' in ' + domain)
+            print(self.name + ' invested ' + str(budget) + ' in CounterIntel')
         else:
             cprint('Failed to invest : ' + domain + ' not recognised', 'red', attrs=['bold', 'reverse'])
 
@@ -223,33 +230,34 @@ def advanceUntil(day, hour, minute):
 
 
         # relative contribution of each domain for new cash
-        w = 4 * 8000 / iterationsPerDay # tech
-        x = 2 * 8000 / iterationsPerDay # military
-        y = 12 * 8000 / iterationsPerDay # ressources
-        z = 8 * 8000 / iterationsPerDay # art
+        w = 0.05 # tech
+        x = 0.05 # military
+        y = 0.05 # ressources
+        z = 0.05 # art
 
         # relative contribution of allocated budget to domain
-        a = 2 # tech
-        b = 2.4 # military
-        c = 12 # ressources
-        d = 1.6 # art
-        e = 1 # counter-intel
-
-        # % allocated budget spending rate
-        m = 5 # counter-intel
-        n = 4 # rest
+        a = 0.00012 # tech
+        b = 0.00012 # military
+        c = 0.00012 # ressources
+        d = 0.00012 # art
+        e = 0 # counter-intel
 
         totalMoney = 0
         for f in range(len(factions)): # compute totalMoney
             totalMoney += factions[f].money[i-1]
 
         for f in range(len(factions)): # for every faction
-            factions[f].money[i] = factions[f].money[i-1] + (w*factions[f].tech[i-1] + x*factions[f].military[i-1] + y*factions[f].ressources[i-1] + z*factions[f].art[i-1])
-            factions[f].tech[i] = factions[f].tech[i-1] * (1) # TODO
-            factions[f].military[i] = factions[f].military[i-1] * (1) # TODO
-            factions[f].ressources[i] = factions[f].ressources[i-1] * (1) # TODO
-            factions[f].art[i] = factions[f].art[i-1] * (1) # TODO
-            factions[f].counterIntel[i] = factions[f].counterIntel[i-1] * (1) # TODO
+            factions[f].money[i] = factions[f].money[i-1] + ((w*(factions[f].tech[i-1]-startValueDomain) + x*(factions[f].military[i-1]-startValueDomain) + y*(factions[f].ressources[i-1]-startValueDomain) + z*(factions[f].art[i-1]-startValueDomain)) / iterationsPerDay * 20)
+            factions[f].tech[i] = factions[f].tech[i-1] * (1 + a * factions[f].techBudget / iterationsPerDay * 24)
+            factions[f].techBudget -= (factions[f].techBudget / (100/budgetDeplationRate)) / iterationsPerDay * 1.95
+            factions[f].military[i] = factions[f].military[i-1] * (1 + b * factions[f].militaryBudget / iterationsPerDay * 24)
+            factions[f].militaryBudget -= (factions[f].militaryBudget / (100/budgetDeplationRate)) / iterationsPerDay * 1.95
+            factions[f].ressources[i] = factions[f].ressources[i-1] * (1 + c * factions[f].ressourcesBudget / iterationsPerDay * 24)
+            factions[f].ressourcesBudget -= (factions[f].ressourcesBudget / (100/budgetDeplationRate)) / iterationsPerDay * 1.95
+            factions[f].art[i] = factions[f].art[i-1] * (1 + d * factions[f].artBudget / iterationsPerDay * 24)
+            factions[f].artBudget -= (factions[f].artBudget / (100/budgetDeplationRate)) / iterationsPerDay * 1.95
+            factions[f].counterIntel[i] = factions[f].counterIntel[i-1] * (1 + e * factions[f].counterIntelBudget / iterationsPerDay * 24)
+            factions[f].counterIntelBudget -= (factions[f].counterIntelBudget / (100/budgetDeplationRate)) / iterationsPerDay * 1.95
             ''' BEFORE :
             factions[f].tech[i] = factions[f].tech[i-1] * (1 + factions[f].techBudget/(iterationsPerDay/a)/totalMoney) #+ factions[f].spatialBudget/(iterationsPerDay/2)*0.1/totalMoney)
             factions[f].spatial[i] = factions[f].spatial[i-1] * (1 + factions[f].spatialBudget/(iterationsPerDay/b)/totalMoney) #+ factions[f].techBudget/(iterationsPerDay/2)*0.05/totalMoney)
@@ -258,6 +266,10 @@ def advanceUntil(day, hour, minute):
             '''
 
             ''' ???
+            # % allocated budget spending rate
+            m = 5 # counter-intel
+            n = 4 # rest
+
             if factions[f].techBudget >= factions[f].money[i] *0.001: # if budget is higher than 0.1% of faction's budget
                 factions[f].techBudget -= factions[f].techBudget*m/iterationsPerDay
             else:
@@ -278,8 +290,8 @@ def advanceUntil(day, hour, minute):
 
 
     setLastComputedIteration(max(lastComputedIteration, computeUpToIteration))
-    if lastComputedIteration == computeUpToIteration:
-        cprint('Last advanceUntil() not taken into account', 'red', attrs=['bold', 'reverse'])
+    # if lastComputedIteration == computeUpToIteration:
+    #     cprint('Last advanceUntil() not taken into account', 'red', attrs=['bold', 'reverse'])
     if lastComputedIteration == iterations:
         cprint('END OF GAME : max number of iterations reached', 'red', attrs=['bold', 'reverse']) # TODO define cprint
 
