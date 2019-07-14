@@ -8,7 +8,7 @@ from termcolor import cprint # for warnings
 
 dayStart = 15 # jour début du jeu (0h00)
 dayEnd = 28 # jour fin du jeu (23h59)
-dt = 60 # [min] (fine tuned for value:60)
+dt = 60 # [min] (fine tuned for value:60 ; but stable)
 t = np.arange(dayStart, dayEnd+1.01, dt/1440)
 iterations = int((dayEnd - dayStart + 1) * 24 * (60/dt))
 
@@ -19,7 +19,7 @@ Ressources = 2
 Art = 3
 CountreEspionnage = 4
 FACTIONS = ['Staff', 'Pumas', 'Grizzlis', 'Cobras', 'Jaguars']
-startMoney = 1000 #10 * 10^6
+startMoney = 1000
 startValueDomain = 1000
 budgetDeplationRate = 80 # percent per day (fine tuned for value:80)
 
@@ -28,15 +28,6 @@ STATE_STAND_BY = 1
 STATE_DEPLOYED = 2
 
 lastComputedIteration = 0
-def setLastComputedIteration(iterationNb):
-    global lastComputedIteration
-    lastComputedIteration = iterationNb
-def getLastComputedIteration():
-    return lastComputedIteration
-def getLCI(): # short
-    return getLastComputedIteration()
-def setLCI(iterationNb): # short
-    setLastComputedIteration(iterationNb)
 
 #######################################################################################################################
 ####################################################### CLASSES #######################################################
@@ -44,65 +35,73 @@ def setLCI(iterationNb): # short
 
 class Agent:
     name = '' # nom de l'agent
-    domain = '' # domaine d'activité
+    parentFaction = None
+    domain = 0 # domaine d'activité
     state = STATE_NOT_INIT # état de l'agent
     skill = 0 # compétense
     insight = 0 # perspicacité
-    targetFaction = '' # faction infiltrée
+    targetFaction = None # faction infiltrée
 
-    def __init__(self, name):
+    def __init__(self, name, parentFaction):
         self.name = name
+        self.parentFaction = parentFaction
 
     def __str__(self):
         string = self.name
         if self.state == STATE_NOT_INIT: 
             string += '\n    non_init'
         elif self.state == STATE_STAND_BY:
-            string += '\n    stands by'
-            string += '\n    skill_level    : ' + str(self.skill)
+            string += '\n    stands by      : ' + DOMAINS[self.domain]
         elif self.state == STATE_DEPLOYED:
-            string += '\n    deployed'
-            string += '\n    skill_level    : ' + str(self.skill)
-            string += '\n    insight_points : ' + str(self.insight)
-            string += '\n    target_faction : ' + self.targetFaction
+            string += '\n    deployed       : ' + DOMAINS[self.domain]
+            string += '\n    target_faction : ' + self.targetFaction.name
         else:
             string += '\n    unknown_state'
+        
+        string += '\n    skill_level    : ' + str(self.skill)
+        string += '\n    insight_points : ' + str(self.insight)
 
         return string
 
     def recruit(self, domain):
-        if domain not in DOMAINS:
-            cprint('Failed to recruit ' + self.name + ' : ' + domain + ' not recognised', 'red', attrs=['bold', 'reverse'])
+
+        if domain > len(DOMAINS):
+            cprint('Failed to recruit ' + self.name + ' : ' + str(domain) + ' not recognised', 'red', attrs=['bold', 'reverse'])
         elif self.state == STATE_NOT_INIT:
             self.domain = domain
             self.state = STATE_STAND_BY
-            print(self.name + ' has been recruited in domain : ' + domain)
+            print(self.name + ' has been recruited in domain : ' + DOMAINS[domain])
         elif self.state == STATE_STAND_BY:
             self.domain = domain
             self.skill /= 2
-            print(self.name + ' has reconverted into new domain : ' + domain)
+            print(self.name + ' has reconverted into new domain : ' + DOMAINS[domain])
         else:
             cprint('Failed to recruit ' + self.name + ' : agent already deployed', 'red', attrs=['bold', 'reverse'])
 
     def train(self, budget):
-        print('train TODO') # TODO
+        if budget > self.parentFaction.money[lastComputedIteration]:
+            cprint('Failed to train ' + self.name + ' : not enough funds', 'red', attrs=['bold', 'reverse'])
+        else : 
+            self.skill += budget
+            self.parentFaction.money[lastComputedIteration] -= budget
+            print(self.name + ' trained for ' + str(budget) + ' in ' + DOMAINS[self.domain])
 
     def deploy(self, targetFaction):
-        if targetFaction not in FACTIONS:
-            cprint('Failed to deploy ' + self.name + ' : ' + self.targetFaction + ' not recognised', 'red', attrs=['bold', 'reverse'])
+        if targetFaction.name not in FACTIONS:
+            cprint('Failed to deploy ' + self.name + ' : ' + self.targetFaction.name + ' not recognised', 'red', attrs=['bold', 'reverse'])
         elif self.state == STATE_NOT_INIT:
             cprint('Failed to deploy ' + self.name + ' : agent not initiated', 'red', attrs=['bold', 'reverse'])
         else:
             self.targetFaction = targetFaction
             self.state = STATE_DEPLOYED
             self.insight = 0
-            print(self.name + ' has been deployed in : ' + targetFaction)
+            print(self.name + ' has been deployed in : ' + self.targetFaction.name)
             
     def extract(self):
         if self.state != STATE_DEPLOYED:
             cprint('Failed to extract ' + self.name + ' : agent not deployed', 'red', attrs=['bold', 'reverse'])
         else:
-            self.targetFaction = ''
+            self.targetFaction = None
             self.state = STATE_STAND_BY
             self.insight = 0
             print(self.name + ' has been extracted')
@@ -116,19 +115,55 @@ class Agent:
     #    - espion est capturé, perd des points de skill et est mis en stand-by
     #    - espion est tué, perd tous ses points et est mit en non-initié
     def spy(self, buget):
-        print('spy TODO') # TODO
+        if not assertMissionFeasability(self):
+            cprint(self.name + ' failed to spy', 'red', attrs=['bold', 'reverse'])
+        else:
+            print('spy TODO') # TODO
     
     # effectue sabotage
     # mission réussie :
     #    - fait perdre des points à targetFaction dans le domaine saboté
-    #    - targetFaction n'est pas averti de qui a commi le sabotage
+    #    - targetFaction n'est pas averti de QUI a commi le sabotage
     # mission échoue : (en fonction de la gravité)
-    #    - espion s'enfuit sans saboter, rentre en stand-by mais l'alerte est donnée
-    #    - espion est capturé, perd des points de skill et est mis en stand-by
-    #    - espion est tué, perd tous ses points et est mit en non-initié
+    #    - espion se cache sans avoir saboté, perd des points de skill mais l'alerte n'est pas donnée
+    #    - espion s'enfuit sans avoir saboté, perd des points de skill et est mis en stand-by après avoir fait sonner l'alerte
     def sabotage(self, budget):
-        print('sabotage TODO') # TODO
-        
+        if not assertMissionFeasability(self, budget):
+            cprint(self.name + ' failed to sabotage due to assertFeasability', 'red', attrs=['bold', 'reverse'])
+        else:
+            self.parentFaction.money[lastComputedIteration] -= budget
+            success = computeMissionSuccess(self, budget)
+            if success < 50.0: # failure
+                amount = success*2 / 100
+                self.skill *= amount
+                if success < 40:
+                    print(self.name + ' failed to sabotage ' + self.targetFaction.name + ' - he has been extracted and lost ' + str(100 - (amount*100)) + '% of his skill points (still got ' + str(self.skill) + ' points left)')
+                    print('NOTIFY ' + self.targetFaction.name + ' THEY HAVE BEEN SUBJECT OF A FAILED SABOTAGE BY ' + self.parentFaction.name)
+                    self.extract()
+                else:
+                    print(self.name + ' failed to sabotage ' + self.targetFaction.name + ' - he found a shelter but lost ' + str(100 - (amount*100)) + '% of his skill points (still got ' + str(self.skill) + ' points left)')
+                    
+            else: # success
+                amount = 0
+                if self.domain == Tech:
+                    amount = budget * (success/100.0) # TODO equilibrage !?
+                    self.targetFaction.tech[lastComputedIteration] -= amount
+                elif self.domain == Militaire:
+                    amount = budget * (success/100.0) # TODO equilibrage !?
+                    self.targetFaction.military[lastComputedIteration] -= amount
+                elif self.domain == Ressources:
+                    amount = budget * (success/100.0) # TODO equilibrage !?
+                    self.targetFaction.ressources[lastComputedIteration] -= amount
+                elif self.domain == Art:
+                    amount = budget * (success/100.0) # TODO equilibrage !?
+                    self.targetFaction.art[lastComputedIteration] -= amount
+                else:
+                    print(self.domain)
+                    cprint(self.name + ' failed to sabotage : unknown domain', 'red', attrs=['bold', 'reverse'])
+                    return
+                print(self.name + ' has sabotaged ' + self.targetFaction.name + ' ; ' + DOMAINS[self.domain] + ' by ' + str(amount))
+                print('NOTIFY ' + self.targetFaction.name + ' THEY HAVE BEEN SUBJECT OF A SABOTAGE and lost ' + str(amount) + ' ' + DOMAINS[self.domain] + ' POINTS')
+
 class Faction:
     name = ''
     agents = None
@@ -153,7 +188,7 @@ class Faction:
         # init agents
         i = 0
         for m in members:
-            self.agents[i] = Agent(m)
+            self.agents[i] = Agent(m, self)
             i += 1
 
         global iterations
@@ -172,6 +207,12 @@ class Faction:
             
     def __str__(self):
         string = self.name  + ' : ' + str(self.agents.size)
+        string += '\n  $    : ' + str(self.money[lastComputedIteration])
+        string += '\n  Tech : ' + str(self.tech[lastComputedIteration])
+        string += '\n  Mil  : ' + str(self.military[lastComputedIteration])
+        string += '\n  Ress : ' + str(self.ressources[lastComputedIteration])
+        string += '\n  Art  : ' + str(self.art[lastComputedIteration])
+        string += '\n  CE   : ' + str(self.counterIntel[lastComputedIteration])
         for a in self.agents:
             string += '\n  ' + str(a)
 
@@ -183,7 +224,7 @@ class Faction:
         if domain > len(DOMAINS):
             cprint('Failed to invest : ' + str(domain) + ' not recognised', 'red', attrs=['bold', 'reverse'])
         elif budget > self.money[lastComputedIteration]:
-            cprint('Failed to invest : not enough funds', 'red', attrs=['bold', 'reverse'])
+            cprint(self.name + ' failed to invest in ' + DOMAINS[domain] + ' : not enough funds', 'red', attrs=['bold', 'reverse'])
         elif domain == 0:
             self.techBudget += budget
             self.money[lastComputedIteration] -= budget
@@ -205,7 +246,7 @@ class Faction:
             self.money[lastComputedIteration] -= budget
             print(self.name + ' invested ' + str(budget) + ' in CounterIntel')
         else:
-            cprint('Failed to invest : ' + domain + ' not recognised', 'red', attrs=['bold', 'reverse'])
+            cprint('Failed to invest : ' + str(domain) + ' not recognised', 'red', attrs=['bold', 'reverse'])
 
 
 
@@ -213,6 +254,28 @@ class Faction:
 ###################################################### FUNCTIONS ######################################################
 #######################################################################################################################
 
+def getLastComputedIteration():
+    return lastComputedIteration
+def getLCI(): # short
+    return getLastComputedIteration()
+def setLastComputedIteration(iterationNb):
+    global lastComputedIteration
+    lastComputedIteration = iterationNb
+def setLCI(iterationNb): # short
+    setLastComputedIteration(iterationNb)
+
+def assertMissionFeasability(agent, budget):
+    return agent.state == STATE_DEPLOYED and agent.targetFaction.name != agent.parentFaction.name and budget <= agent.parentFaction.money[lastComputedIteration]
+
+# returns percentage of mission success (0% : total failure ; 50% nothing happened ; 100% : total success)
+def computeMissionSuccess(agent, budget):
+    value = max(0.0,min(100.0, ((100/1.5) * ((agent.skill * 1.4 + budget * 2) / (agent.targetFaction.counterIntel[lastComputedIteration]+0.001)) - (50.0/1.5)) * (agent.insight/100.0 + 0.5) ))
+    print('Computing mission success - agent.skill = ' + str(agent.skill))
+    print('                            agent.insight = ' + str(agent.insight))
+    print('                            mission.budget = ' + str(budget))
+    print('                            target.counterIntel = ' + str(agent.targetFaction.counterIntel[lastComputedIteration]+0.001))
+    print('                  success = ' + str(value))
+    return value
 
 def advanceUntil(day, hour, minute):
     assert day < 32 and hour < 24 and minute < 60, 'Wrong arguments'
@@ -225,22 +288,27 @@ def advanceUntil(day, hour, minute):
     for i in range(lastComputedIteration+1, computeUpToIteration+1, 1): # for every turn
         print('---------------------- TURN', i, '----------------------')
 
-        # compute next values for all domains
-        # increment insight for all deployed spies
+        ''' INCREMENT INSIGHT FOR ALL DEPLOYED SPIES '''
 
+        for f in range(len(factions)): # for every faction
+            for a in range(len(factions[f].agents)): # for every agent
+                if factions[f].agents[a].state == STATE_DEPLOYED:
+                    factions[f].agents[a].insight += 100 / (5 * iterationsPerDay) # gets to 100% in 5 days
+            
+        ''' COMPUTE NEXT VALUES FOR ALL DOMAINS '''
 
         # relative contribution of each domain for new cash
         w = 0.05 # tech
-        x = 0.05 # military
-        y = 0.05 # ressources
-        z = 0.05 # art
+        x = 0.02 # military
+        y = 0.06 # ressources
+        z = 0.26 # art
 
         # relative contribution of allocated budget to domain
         a = 0.00012 # tech
-        b = 0.00012 # military
-        c = 0.00012 # ressources
-        d = 0.00012 # art
-        e = 0 # counter-intel
+        b = 0.00015 # military
+        c = 0.00010 # ressources
+        d = 0.00003 # art
+        e = 0.075 # counter-intel
 
         totalMoney = 0
         for f in range(len(factions)): # compute totalMoney
@@ -256,44 +324,12 @@ def advanceUntil(day, hour, minute):
             factions[f].ressourcesBudget -= (factions[f].ressourcesBudget / (100/budgetDeplationRate)) / iterationsPerDay * 1.95
             factions[f].art[i] = factions[f].art[i-1] * (1 + d * factions[f].artBudget / iterationsPerDay * 24)
             factions[f].artBudget -= (factions[f].artBudget / (100/budgetDeplationRate)) / iterationsPerDay * 1.95
-            factions[f].counterIntel[i] = factions[f].counterIntel[i-1] * (1 + e * factions[f].counterIntelBudget / iterationsPerDay * 24)
+            factions[f].counterIntel[i] = factions[f].counterIntel[i-1] + (e * factions[f].counterIntelBudget / iterationsPerDay * 24)
             factions[f].counterIntelBudget -= (factions[f].counterIntelBudget / (100/budgetDeplationRate)) / iterationsPerDay * 1.95
-            ''' BEFORE :
-            factions[f].tech[i] = factions[f].tech[i-1] * (1 + factions[f].techBudget/(iterationsPerDay/a)/totalMoney) #+ factions[f].spatialBudget/(iterationsPerDay/2)*0.1/totalMoney)
-            factions[f].spatial[i] = factions[f].spatial[i-1] * (1 + factions[f].spatialBudget/(iterationsPerDay/b)/totalMoney) #+ factions[f].techBudget/(iterationsPerDay/2)*0.05/totalMoney)
-            factions[f].food[i] = factions[f].food[i-1] * (1 + factions[f].foodBudget/(iterationsPerDay/c)/totalMoney - factions[f].money[i-1]*0.0000000001)
-            factions[f].military[i] = factions[f].military[i-1] * (1 + factions[f].militaryBudget/(iterationsPerDay/d)/totalMoney) #+ factions[f].techBudget/(iterationsPerDay/2)*0.05/totalMoney)
-            '''
-
-            ''' ???
-            # % allocated budget spending rate
-            m = 5 # counter-intel
-            n = 4 # rest
-
-            if factions[f].techBudget >= factions[f].money[i] *0.001: # if budget is higher than 0.1% of faction's budget
-                factions[f].techBudget -= factions[f].techBudget*m/iterationsPerDay
-            else:
-                factions[f].techBudget = 0
-            if factions[f].spatialBudget >= factions[f].money[i] *0.001: # if budget is higher than 0.1% of faction's budget
-                factions[f].spatialBudget -= factions[f].spatialBudget*m/iterationsPerDay
-            else:
-                factions[f].spatialBudget = 0
-            if factions[f].foodBudget >= factions[f].money[i] *0.001: # if budget is higher than 0.1% of faction's budget
-                factions[f].foodBudget -= factions[f].foodBudget*n/iterationsPerDay
-            else:
-                factions[f].foodBudget = 0
-            if factions[f].militaryBudget >= factions[f].money[i] *0.001: # if budget is higher than 0.1% of faction's budget
-                factions[f].militaryBudget -= factions[f].militaryBudget*m/iterationsPerDay
-            else:
-                factions[f].militaryBudget = 0
-            '''
-
 
     setLastComputedIteration(max(lastComputedIteration, computeUpToIteration))
-    # if lastComputedIteration == computeUpToIteration:
-    #     cprint('Last advanceUntil() not taken into account', 'red', attrs=['bold', 'reverse'])
     if lastComputedIteration == iterations:
-        cprint('END OF GAME : max number of iterations reached', 'red', attrs=['bold', 'reverse']) # TODO define cprint
+        cprint('END OF GAME : max number of iterations reached', 'red', attrs=['bold', 'reverse'])
 
 
 #######################################################################################################################

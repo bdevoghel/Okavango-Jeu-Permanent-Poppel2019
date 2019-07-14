@@ -5,4 +5,26 @@ startValueDomain = 1000
 budgetDeplationRate = 80 # percent per day (fine tuned for value:80)
 
 
+
+# relative contribution of each domain for new cash
+w = 0.05 # tech
+x = 0.02 # military
+y = 0.06 # ressources
+z = 0.26 # art
+
+# relative contribution of allocated budget to domain
+a = 0.00012 # tech
+b = 0.00015 # military
+c = 0.00010 # ressources
+d = 0.00003 # art
+e = 0.075 # counter-intel
+
+
+
+
 recruit : in new domain or in other domain (with skill then divided by 2)
+deploy : insight retombe à 0
+train : budget/10 added to skill
+
+computeMissionSuccess(agent, budget):
+    return max(0,min(100, ((100/1.5) * ((agent.skill * 1.4 + budget * 2) / agent.parentFaction.counterIntel[lastComputedIteration]) - (50/1.5)) * (agent.insight/100 + 0.5) ))
