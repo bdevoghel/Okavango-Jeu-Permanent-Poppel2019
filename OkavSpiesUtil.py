@@ -6,9 +6,9 @@ from termcolor import cprint # for warnings
 ###################################################### CONSTANTS ######################################################
 #######################################################################################################################
 
-dayStart = 15 # jour début du jeu (0h00)
+dayStart = 16 # jour début du jeu (0h00)
 dayEnd = 28 # jour fin du jeu (23h59)
-dt = 60 # [min] (fine tuned for value:60 ; but stable)
+dt = 15 # [min] (fine tuned for value:60 ; but stable)
 t = np.arange(dayStart, dayEnd+1.01, dt/1440)
 iterations = int((dayEnd - dayStart + 1) * 24 * (60/dt))
 
@@ -109,21 +109,53 @@ class Agent:
     # effectue espionnage industriel (technologique et/ou économique)
     # mission réussie :
     #    - rapporte des points pour Faction dans le domaine espionné
-    #    - targetFaction n'est pas averti
+    #    - targetFaction n'est averti de rien
     # mission échoue : (en fonction de la gravité)
-    #    - espion s'enfuit sans données, rentre en stad-by mais l'alerte est donnée
-    #    - espion est capturé, perd des points de skill et est mis en stand-by
-    #    - espion est tué, perd tous ses points et est mit en non-initié
-    def spy(self, buget):
-        if not assertMissionFeasability(self):
-            cprint(self.name + ' failed to spy', 'red', attrs=['bold', 'reverse'])
+    #    - espion se cache sans avoir espionné, perd des points de skill mais l'alerte n'est pas donnée
+    #    - espion s'enfuit sans avoir espionné, perd des points de skill et est mis en stand-by après avoir fait sonner l'alerte
+    
+    def spy(self, budget):
+        if not assertMissionFeasability(self, budget):
+            cprint(self.name + ' failed to spy due to assertFeasability', 'red', attrs=['bold', 'reverse'])
         else:
-            print('spy TODO') # TODO
+            self.parentFaction.money[lastComputedIteration] -= budget
+            success = computeMissionSuccess(self, budget)
+            if success < 50.0: # failure
+                amount = success*2 / 100
+                self.skill *= amount
+                if success < 40:
+                    print(self.name + ' failed to spy ' + self.targetFaction.name + ' - he has been extracted and lost ' + str(100 - (amount*100)) + '% of his skill points (still got ' + str(self.skill) + ' points left)')
+                    print('NOTIFY ' + self.targetFaction.name + ' THEY HAVE BEEN SUBJECT OF A FAILED SPYING BY ' + self.parentFaction.name)
+                    self.extract()
+                else:
+                    print(self.name + ' failed to spy ' + self.targetFaction.name + ' - he found a shelter but lost ' + str(100 - (amount*100)) + '% of his skill points (still got ' + str(self.skill) + ' points left)')
+                    
+            else: # success
+                amount = 0 
+                if self.domain == Tech:
+                    amount = max(0, self.targetFaction.tech[lastComputedIteration] - self.parentFaction.tech[lastComputedIteration]) * (success/100.0) * 0.5
+                    self.parentFaction.tech[lastComputedIteration] += amount
+                elif self.domain == Militaire:
+                    amount = max(0, self.targetFaction.military[lastComputedIteration] - self.parentFaction.military[lastComputedIteration]) * (success/100.0) * 0.5
+                    self.parentFaction.military[lastComputedIteration] += amount
+                elif self.domain == Ressources:
+                    amount = max(0, self.targetFaction.ressources[lastComputedIteration] - self.parentFaction.ressources[lastComputedIteration]) * (success/100.0) * 0.5
+                    self.parentFaction.ressources[lastComputedIteration] += amount
+                elif self.domain == Art:
+                    amount = max(0, self.targetFaction.art[lastComputedIteration] - self.parentFaction.art[lastComputedIteration]) * (success/100.0) * 0.5
+                    self.parentFaction.art[lastComputedIteration] += amount
+                else:
+                    print(self.domain)
+                    cprint(self.name + ' failed to spy : unknown domain', 'red', attrs=['bold', 'reverse'])
+                    return
+                print(self.name + ' has spied ' + self.targetFaction.name + ' ; ' + DOMAINS[self.domain] + ' and got himself ' + str(amount) + ' points')
+                print('NOTIFY ' + self.parentFaction.name + ' THEY HAVE SPIED ON ' + self.targetFaction.name + ' AND NOW KNOW THIER POINTS IN ' + DOMAINS[self.domain])
+
     
     # effectue sabotage
     # mission réussie :
     #    - fait perdre des points à targetFaction dans le domaine saboté
-    #    - targetFaction n'est pas averti de QUI a commi le sabotage
+    #    - targetFaction n'est pas averti de QUI a commit le sabotage
     # mission échoue : (en fonction de la gravité)
     #    - espion se cache sans avoir saboté, perd des points de skill mais l'alerte n'est pas donnée
     #    - espion s'enfuit sans avoir saboté, perd des points de skill et est mis en stand-by après avoir fait sonner l'alerte
@@ -146,23 +178,35 @@ class Agent:
             else: # success
                 amount = 0
                 if self.domain == Tech:
-                    amount = budget * (success/100.0) # TODO equilibrage !?
+                    if self.targetFaction.tech[lastComputedIteration] < self.parentFaction.tech[lastComputedIteration]:
+                        amount = (self.parentFaction.tech[lastComputedIteration] - self.targetFaction.tech[lastComputedIteration]) * (success/100.0) * 0.5
+                    else:
+                        amount = (self.targetFaction.tech[lastComputedIteration] - self.parentFaction.tech[lastComputedIteration]) * (success/100.0) * 0.2
                     self.targetFaction.tech[lastComputedIteration] -= amount
                 elif self.domain == Militaire:
-                    amount = budget * (success/100.0) # TODO equilibrage !?
+                    if self.targetFaction.military[lastComputedIteration] < self.parentFaction.military[lastComputedIteration]:
+                        amount = (self.parentFaction.military[lastComputedIteration] - self.targetFaction.military[lastComputedIteration]) * (success/100.0) * 0.5
+                    else:
+                        amount = (self.targetFaction.military[lastComputedIteration] - self.parentFaction.military[lastComputedIteration]) * (success/100.0) * 0.2
                     self.targetFaction.military[lastComputedIteration] -= amount
                 elif self.domain == Ressources:
-                    amount = budget * (success/100.0) # TODO equilibrage !?
+                    if self.targetFaction.ressources[lastComputedIteration] < self.parentFaction.ressources[lastComputedIteration]:
+                        amount = (self.parentFaction.ressources[lastComputedIteration] - self.targetFaction.ressources[lastComputedIteration]) * (success/100.0) * 0.5
+                    else:
+                        amount = (self.targetFaction.ressources[lastComputedIteration] - self.parentFaction.ressources[lastComputedIteration]) * (success/100.0) * 0.2
                     self.targetFaction.ressources[lastComputedIteration] -= amount
                 elif self.domain == Art:
-                    amount = budget * (success/100.0) # TODO equilibrage !?
+                    if self.targetFaction.art[lastComputedIteration] < self.parentFaction.art[lastComputedIteration]:
+                        amount = (self.parentFaction.art[lastComputedIteration] - self.targetFaction.art[lastComputedIteration]) * (success/100.0) * 0.5
+                    else:
+                        amount = (self.targetFaction.art[lastComputedIteration] - self.parentFaction.art[lastComputedIteration]) * (success/100.0) * 0.2
                     self.targetFaction.art[lastComputedIteration] -= amount
                 else:
                     print(self.domain)
                     cprint(self.name + ' failed to sabotage : unknown domain', 'red', attrs=['bold', 'reverse'])
                     return
                 print(self.name + ' has sabotaged ' + self.targetFaction.name + ' ; ' + DOMAINS[self.domain] + ' by ' + str(amount))
-                print('NOTIFY ' + self.targetFaction.name + ' THEY HAVE BEEN SUBJECT OF A SABOTAGE and lost ' + str(amount) + ' ' + DOMAINS[self.domain] + ' POINTS')
+                print('NOTIFY ' + self.targetFaction.name + ' THEY HAVE BEEN SUBJECT OF A SABOTAGE AND LOST ' + str(amount) + ' ' + DOMAINS[self.domain] + ' POINTS')
 
 class Faction:
     name = ''

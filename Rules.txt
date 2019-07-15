@@ -19,12 +19,51 @@ c = 0.00010 # ressources
 d = 0.00003 # art
 e = 0.075 # counter-intel
 
+insight =                     factions[f].agents[a].insight += 100 / (5 * iterationsPerDay) # gets to 100% in 5 days
+
 
 
 
 recruit : in new domain or in other domain (with skill then divided by 2)
 deploy : insight retombe à 0
-train : budget/10 added to skill
+train : budget added to skill
+spy :=              amount = max(0, self.targetFaction.tech[lastComputedIteration] - self.parentFaction.tech[lastComputedIteration]) * (success/100.0) * 0.5
+sabotage :=         if self.targetFaction.tech[lastComputedIteration] < self.parentFaction.tech[lastComputedIteration]:
+                        amount = (self.parentFaction.tech[lastComputedIteration] - self.targetFaction.tech[lastComputedIteration]) * (success/100.0) * 0.5
+                    else:
+                        amount = (self.targetFaction.tech[lastComputedIteration] - self.parentFaction.tech[lastComputedIteration]) * (success/100.0) * 0.2
+
 
 computeMissionSuccess(agent, budget):
-    return max(0,min(100, ((100/1.5) * ((agent.skill * 1.4 + budget * 2) / agent.parentFaction.counterIntel[lastComputedIteration]) - (50/1.5)) * (agent.insight/100 + 0.5) ))
+    value = max(0.0,min(100.0, ((100/1.5) * ((agent.skill * 1.4 + budget * 2) / (agent.targetFaction.counterIntel[lastComputedIteration]+0.001)) - (50.0/1.5)) * (agent.insight/100.0 + 0.5) ))
+
+
+
+
+INVENTIONS : 
+Space observatory
+1Tupperware
+1947 Transistor
+1947 Defibrillator
+1947 Supersonic aircraft
+1948 Cable television
+1949 Atomic clock
+1949 Crash test dummy
+1952 Airbag
+1952 Barcode
+1952 Artificial heart
+
+
+
+
+
+
+
+
+
+
+TODO 
+
+recruit dans counterIntel
+dire quel facteur vaut combien
+dire quel secteur contribue à combien dans le classement    

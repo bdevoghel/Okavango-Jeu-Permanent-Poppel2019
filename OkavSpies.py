@@ -38,32 +38,28 @@ else:
 
 #######################################################################################################################
 
-advanceUntil(15, 10, 0)
-# staff.invest(Tech, 200)
-# staff.invest(Militaire, 200)
-# staff.invest(Ressources, 200)
-# staff.invest(Art, 200)
-# staff.invest(CountreEspionnage, 100)
+advanceUntil(16, 10, 0)
+staff.invest(Tech, 200)
+staff.invest(Militaire, 200)
+staff.invest(Ressources, 200)
+staff.invest(Art, 200)
+staff.invest(CountreEspionnage, 100)
 staff.agents[0].recruit(Tech)
 staff.agents[0].train(100)
 staff.agents[0].deploy(pumas)
 # staff.agents[0].extract()
-pumas.invest(Tech, 200)
-pumas.invest(CountreEspionnage, 200)
-print(staff)
-print(pumas)
+pumas.invest(Tech, 500)
+pumas.invest(CountreEspionnage, 100)
 # grizzlis.invest(Militaire, 200)
 # jaguars.invest(Ressources, 200)
 # cobras.invest(Art, 200)
-advanceUntil(16, 10, 0)
-staff.agents[0].sabotage(10)
-print(staff)
-print(pumas)
 advanceUntil(17, 10, 0)
+staff.agents[0].sabotage(100)
+advanceUntil(18, 10, 0)
 
 
 # staff.money[getLCI()] += 100
-# advanceUntil(17, 10, 0)
+# advanceUntil(19, 10, 0)
 
 
 
