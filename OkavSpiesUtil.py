@@ -6,7 +6,7 @@ from termcolor import cprint # for warnings
 ###################################################### CONSTANTS ######################################################
 #######################################################################################################################
 
-dayStart = 16 # jour début du jeu (0h00)
+dayStart = 15 # jour début du jeu (0h00)
 dayEnd = 28 # jour fin du jeu (23h59)
 dt = 15 # [min] (fine tuned for value:60 ; but stable)
 t = np.arange(dayStart, dayEnd+1.01, dt/1440)
@@ -19,6 +19,7 @@ Ressources = 2
 Art = 3
 CountreEspionnage = 4
 FACTIONS = ['Staff', 'Pumas', 'Grizzlis', 'Cobras', 'Jaguars']
+factions = None
 startMoney = 1000
 startValueDomain = 1000
 budgetDeplationRate = 80 # percent per day (fine tuned for value:80)
@@ -79,8 +80,8 @@ class Agent:
             cprint('Failed to recruit ' + self.name + ' : agent already deployed', 'red', attrs=['bold', 'reverse'])
 
     def train(self, budget):
-        if budget > self.parentFaction.money[lastComputedIteration]:
-            cprint('Failed to train ' + self.name + ' : not enough funds', 'red', attrs=['bold', 'reverse'])
+        if budget > self.parentFaction.money[lastComputedIteration] or self.state != STATE_STAND_BY:
+            cprint('Failed to train ' + self.name + ' : not enough funds or agent does not stands by', 'red', attrs=['bold', 'reverse'])
         else : 
             self.skill += budget
             self.parentFaction.money[lastComputedIteration] -= budget
@@ -224,6 +225,8 @@ class Faction:
     counterIntel = None
     counterIntelBudget = 0
 
+    classement = 1 # the higher the better
+
 
     def __init__(self, name, members):
         self.name = name
@@ -307,6 +310,9 @@ def setLastComputedIteration(iterationNb):
     lastComputedIteration = iterationNb
 def setLCI(iterationNb): # short
     setLastComputedIteration(iterationNb)
+def setFactions(s, p, g, c, j):
+    global factions
+    factions = [s, p, g, c, j]
 
 def assertMissionFeasability(agent, budget):
     return agent.state == STATE_DEPLOYED and agent.targetFaction.name != agent.parentFaction.name and budget <= agent.parentFaction.money[lastComputedIteration]
@@ -338,6 +344,8 @@ def advanceUntil(day, hour, minute):
             for a in range(len(factions[f].agents)): # for every agent
                 if factions[f].agents[a].state == STATE_DEPLOYED:
                     factions[f].agents[a].insight += 100 / (5 * iterationsPerDay) # gets to 100% in 5 days
+                    factions[f].agents[a].insight = min(100, factions[f].agents[a].insight)
+                    
             
         ''' COMPUTE NEXT VALUES FOR ALL DOMAINS '''
 
@@ -383,7 +391,10 @@ def advanceUntil(day, hour, minute):
 
 staff = Faction(FACTIONS[0], ['Hokkaido', 'Otocyon', 'Ocelot', 'Brocard', 'Douc', 'Alpaga', 'Gerfaut', 'Bourbour'])
 pumas = Faction(FACTIONS[1], ['Muscardin', 'Gulawani', 'Ouandji', 'Castor', 'Nanuk', 'Racoon', 'Dhole', 'Balkanski', 'Pierric', 'Emeric'])
-grizzlis = Faction(FACTIONS[2], [])
-cobras = Faction(FACTIONS[3], [])
-jaguars = Faction(FACTIONS[4], [])
-factions = [staff, pumas, grizzlis, cobras, jaguars]
+grizzlis = Faction(FACTIONS[2], ['Oncilla', 'Ligoni', 'Cheetah', 'Akita', 'Isard', 'Panthère', 'Busard', 'Jacques', 'Stephan'])
+cobras = Faction(FACTIONS[3], ['Okapi', 'Lionceau', 'Suricate', 'Hobereau', 'Margay', 'Capybara', 'Kodiak', 'Lancelot', 'Grégoire'])
+jaguars = Faction(FACTIONS[4], ['Aratinga', 'Baribal', 'Cheveche', 'Madoqua', 'Crecerelle', 'Bengal', 'Lynx', 'Milan', 'Matteo', 'Adrien'])
+
+setFactions(staff, pumas, grizzlis, cobras, jaguars)
+
+    

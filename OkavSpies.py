@@ -14,13 +14,13 @@ JEU PERMANENT POPPEL 2019
 
 '''
 
-newGame = True
-saveState = False
+newGame = False
+saveState = True
 
 if newGame:
     setLCI(0) # LastComputedIteration = 0
 else:
-    lastPickleIteration = 0 # TODO define !!
+    lastPickleIteration = 630 # TODO define !!
     factionsFileName = 'pickles/factions_upToIter' + str(lastPickleIteration) + '.pkl'
     with open(factionsFileName, 'rb') as infile:
         factions = pickle.load(infile)
@@ -29,41 +29,206 @@ else:
     grizzlis = factions[2]
     cobras = factions[3]
     jaguars = factions[4]
+    setFactions(staff, pumas, grizzlis, cobras, jaguars)
 
     utilFileName = 'pickles/util_upToIter' + str(lastPickleIteration) + '.pkl'
     with open(utilFileName, 'rb') as infile:
         util = pickle.load(infile)
+    print(util[0])
     setLCI(util[0])
 
 
 #######################################################################################################################
 
-advanceUntil(16, 10, 0)
-staff.invest(Tech, 200)
-staff.invest(Militaire, 200)
-staff.invest(Ressources, 200)
-staff.invest(Art, 200)
-staff.invest(CountreEspionnage, 100)
-staff.agents[0].recruit(Tech)
-staff.agents[0].train(100)
-staff.agents[0].deploy(pumas)
-# staff.agents[0].extract()
-pumas.invest(Tech, 500)
-pumas.invest(CountreEspionnage, 100)
-# grizzlis.invest(Militaire, 200)
-# jaguars.invest(Ressources, 200)
+# advanceUntil(15, 16, 0)
+
+# advanceUntil(15, 22, 20)
+# jaguars.agents[9].recruit(Ressources)
+# jaguars.agents[9].train(300)
+# jaguars.invest(Ressources, 100)
+# jaguars.invest(Tech, 150)
+# jaguars.invest(Art, 200)
+# jaguars.invest(CountreEspionnage, 250)
+# jaguars.agents[9].deploy(grizzlis)
+
+# advanceUntil(16, 12, 13) # PRINT
+
+# advanceUntil(16, 13, 19)
+# jaguars.invest(Art, 137)
+# jaguars.invest(CountreEspionnage, 50)
+
+# advanceUntil(16,18,19)
+# pumas.invest(CountreEspionnage, 400)
+# pumas.invest(Tech, 100)
+# pumas.invest(Art, 300)
+# pumas.agents[5].recruit(Ressources)
+# pumas.agents[5].train(200)
+# pumas.agents[5].deploy(jaguars)
+
+# advanceUntil(16, 18, 41)
+# cobras.invest(Art, 300)
+# cobras.invest(Ressources, 300)
+# cobras.invest(CountreEspionnage, 400)
+
+# advanceUntil(16, 18, 52)
+# grizzlis.invest(Art, 250)
+# grizzlis.invest(CountreEspionnage, 300)
+# grizzlis.agents[2].recruit(Tech)
+# grizzlis.agents[2].train(50)
+# grizzlis.agents[8].recruit(Tech)
+# grizzlis.agents[8].train(50)
+# grizzlis.agents[7].recruit(Tech)
+# grizzlis.agents[7].train(50)
+# grizzlis.agents[4].recruit(Militaire)
+# grizzlis.agents[4].train(50)
+# grizzlis.agents[5].recruit(Militaire)
+# grizzlis.agents[5].train(50)
+# grizzlis.agents[0].recruit(Militaire)
+# grizzlis.agents[0].train(50)
+# grizzlis.agents[1].recruit(Ressources)
+# grizzlis.agents[1].train(50)
+# grizzlis.agents[3].recruit(Ressources)
+# grizzlis.agents[3].train(50)
+# grizzlis.agents[6].recruit(Ressources)
+# grizzlis.agents[6].train(50)
+
+# advanceUntil(16, 20, 0)
+# cobras.money[getLCI()] += 200 # WANTED : Crécerelle attrapé par Margay
+
+# advanceUntil(17, 10, 20) # PRINT
+
+# advanceUntil(17, 10, 50)
+# pumas.money[getLCI()] += 200 # WANTED : Dhole échappe
+
+# advanceUntil(17, 12, 35)
+# jaguars.invest(Tech, 150)
+# jaguars.invest(Militaire, 123)
+# jaguars.invest(Art, 200)
+# jaguars.invest(CountreEspionnage, 200)
+# jaguars.agents[9].spy(200)
+
+# advanceUntil(18, 14, 16)
+# pumas.invest(Tech, 150)
+# pumas.invest(Art, 200)
+# pumas.invest(CountreEspionnage, 200)
+
+# advanceUntil(18, 14, 30) # PRINT
+
+# advanceUntil(18, 15, 28)
+# pumas.invest(Art, 300)
+# pumas.invest(CountreEspionnage, 135)
+# pumas.agents[6].recruit(Militaire)
+# pumas.agents[6].train(300)
+# pumas.agents[6].deploy(cobras)
+
+# advanceUntil(18, 15, 29)
+# cobras.agents[4].recruit(Art)
+# cobras.agents[4].train(800)
+# cobras.agents[4].deploy(pumas)
+# cobras.agents[1].recruit(Militaire)
+# cobras.agents[1].train(400)
+# cobras.agents[1].deploy(grizzlis)
+# cobras.invest(Militaire, 300)
 # cobras.invest(Art, 200)
-advanceUntil(17, 10, 0)
-staff.agents[0].sabotage(100)
-advanceUntil(18, 10, 0)
+# cobras.invest(CountreEspionnage, 200)
+# cobras.invest(Tech, 33)
+
+# advanceUntil(18, 15, 38)
+# grizzlis.invest(CountreEspionnage, 250)
+# grizzlis.agents[1].train(50)
+# grizzlis.agents[2].train(50)
+# grizzlis.agents[0].train(50)
+# grizzlis.agents[1].deploy(jaguars)
+# grizzlis.agents[2].deploy(pumas)
+# grizzlis.agents[0].deploy(cobras)
+
+# advanceUntil(18, 15, 42)
+# jaguars.agents[6].recruit(Tech)
+# jaguars.agents[6].train(400)
+# jaguars.agents[6].deploy(cobras)
+# jaguars.agents[4].recruit(Art)
+# jaguars.agents[4].train(400)
+# jaguars.agents[4].deploy(pumas)
+# jaguars.invest(Militaire, 115)
+# jaguars.invest(Tech, 300)
+# jaguars.invest(Ressources, 250)
+# jaguars.invest(Art, 250)
+# jaguars.invest(CountreEspionnage, 400)
+
+# advanceUntil(19, 14, 50)
+# pumas.agents[5].spy(400)
+# pumas.invest(Art, 300)
+# pumas.invest(CountreEspionnage, 500)
+
+# advanceUntil(19, 22, 00) # PRINT
+
+# advanceUntil(20, 11, 0)
+# jaguars.money[getLCI()] += 200 # WANTED Douroucouli
+
+# advanceUntil(20, 11, 10)
+# jaguars.agents[4].sabotage(400)
+# jaguars.agents[6].spy(300)
+# jaguars.agents[9].sabotage(200)
+
+# advanceUntil(20, 11, 12)
+# pumas.agents[5].spy(600)
+# pumas.invest(CountreEspionnage, 500)
+# pumas.invest(Art, 500)
+
+# grizzlis.invest(CountreEspionnage, 1100) # STAFF IMPOSED
+
+# advanceUntil(20, 11, 15)
+# cobras.invest(CountreEspionnage, 1000)
+# cobras.invest(Art, 1200)
+# cobras.agents[3].recruit(Tech)
+# cobras.agents[3].train(1000)
+# cobras.agents[3].deploy(jaguars)
+
+# advanceUntil(20, 12, 50)
+# jaguars.agents[5].recruit(Militaire)
+# jaguars.agents[5].train(636)
+# jaguars.agents[5].deploy(pumas)
+# jaguars.invest(Tech, 500)
+# jaguars.invest(Militaire, 500)
+# jaguars.invest(Art, 1200)
+# jaguars.invest(Ressources, 1100)
+# jaguars.invest(CountreEspionnage, 1600)
+
+# advanceUntil(21, 12, 0) # NO PRINT (but they had a look)
+
+# advanceUntil(21, 13, 9)
+# pumas.invest(Ressources, 700)
+# pumas.invest(Militaire, 1000)
+# pumas.invest(Art, 1000)
+# pumas.invest(Tech, 1000)
+# pumas.invest(CountreEspionnage, 2900)
+# pumas.agents[5].extract()
+# pumas.agents[5].train(800)
+# pumas.agents[5].deploy(jaguars)
+
+# advanceUntil(21, 13, 37)
+# jaguars.invest(Tech, 2000)
+# jaguars.invest(Militaire, 2000)
+# jaguars.invest(Ressources, 2000)
+# jaguars.invest(Art, 2000)
+# jaguars.invest(CountreEspionnage, 3300)
+# jaguars.agents[4].train(1000)
+# jaguars.agents[4].deploy(pumas)
+# jaguars.agents[9].sabotage(283)
+# jaguars.agents[6].sabotage(700)
+# jaguars.agents[2].recruit(Militaire)
+# jaguars.agents[2].train(1000)
+# jaguars.agents[2].deploy(cobras)
+# jaguars.agents[0].recruit(Ressources)
+# jaguars.agents[0].train(1000)
+# jaguars.agents[0].deploy(pumas)
+
+cprint('Game saved here at iteration ' + str(getLCI()), 'red', attrs=['bold', 'reverse']) # added limited growth
+
+advanceUntil(23, 20, 0) # PRINT
 
 
-# staff.money[getLCI()] += 100
-# advanceUntil(19, 10, 0)
 
-
-
-# advanceUntil(29, 0, 0)
 
 #######################################################################################################################
 
