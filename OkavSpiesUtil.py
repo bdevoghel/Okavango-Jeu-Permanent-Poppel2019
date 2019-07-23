@@ -225,7 +225,10 @@ class Faction:
     counterIntel = None
     counterIntelBudget = 0
 
+    points = None
     classement = 1 # the higher the better
+    def setClassement(self, x):
+        self.classement = x
 
 
     def __init__(self, name, members):
@@ -251,6 +254,9 @@ class Faction:
         self.art[0] = startValueDomain
         self.counterIntel = np.zeros(iterations+1)
         self.counterIntel[0] = 0
+
+        self.points = np.zeros(iterations+1)
+        self.points[0] = 0
             
     def __str__(self):
         string = self.name  + ' : ' + str(self.agents.size)
@@ -260,6 +266,7 @@ class Faction:
         string += '\n  Ress : ' + str(self.ressources[lastComputedIteration])
         string += '\n  Art  : ' + str(self.art[lastComputedIteration])
         string += '\n  CE   : ' + str(self.counterIntel[lastComputedIteration])
+        string += '\n  #    : ' + str(self.points[lastComputedIteration])
         for a in self.agents:
             string += '\n  ' + str(a)
 
@@ -336,7 +343,7 @@ def advanceUntil(day, hour, minute):
     computeUpToIteration = int(min(iterations, (day - dayStart) * 24 * (60/dt) + floor(60*hour/dt) + floor(minute/dt)))
     iterationsPerDay = (1440/dt)
     for i in range(lastComputedIteration+1, computeUpToIteration+1, 1): # for every turn
-        print('---------------------- TURN', i, '----------------------')
+        print('---------------------- TURN', dayStart + i/iterationsPerDay, '----------------------')
 
         ''' INCREMENT INSIGHT FOR ALL DEPLOYED SPIES '''
 
@@ -362,12 +369,24 @@ def advanceUntil(day, hour, minute):
         d = 0.00003 # art
         e = 0.075 # counter-intel
 
-        totalMoney = 0
-        for f in range(len(factions)): # compute totalMoney
-            totalMoney += factions[f].money[i-1]
+        # relative contribution of each domain for points
+        l = 1.0 # tech
+        m = 1.5 # military
+        n = 0.7 # ressources
+        o = 0.1 # art
+        p = 0 # money
+
+
+        totalPoints = 0.1
+        for f in range(len(factions)): # compute totalPoints
+            totalPoints += factions[f].points[i-1]
 
         for f in range(len(factions)): # for every faction
-            factions[f].money[i] = factions[f].money[i-1] + ((w*(factions[f].tech[i-1]-startValueDomain) + x*(factions[f].military[i-1]-startValueDomain) + y*(factions[f].ressources[i-1]-startValueDomain) + z*(factions[f].art[i-1]-startValueDomain)) / iterationsPerDay * 20)
+            # if i <= 630: # TODO delete this shit
+            #     factions[f].money[i] = factions[f].money[i-1] + (((w*(factions[f].tech[i-1]-startValueDomain) + x*(factions[f].military[i-1]-startValueDomain) + y*(factions[f].ressources[i-1]-startValueDomain) + z*(factions[f].art[i-1]-startValueDomain)) / iterationsPerDay * 20))
+            # else:
+            factions[f].money[i] = factions[f].money[i-1] + (((w*(factions[f].tech[i-1]-startValueDomain) + x*(factions[f].military[i-1]-startValueDomain) + y*(factions[f].ressources[i-1]-startValueDomain) + z*(factions[f].art[i-1]-startValueDomain)) / iterationsPerDay * 20)) * (4/factions[f].classement)
+
             factions[f].tech[i] = factions[f].tech[i-1] * (1 + a * factions[f].techBudget / iterationsPerDay * 24)
             factions[f].techBudget -= (factions[f].techBudget / (100/budgetDeplationRate)) / iterationsPerDay * 1.95
             factions[f].military[i] = factions[f].military[i-1] * (1 + b * factions[f].militaryBudget / iterationsPerDay * 24)
@@ -378,6 +397,9 @@ def advanceUntil(day, hour, minute):
             factions[f].artBudget -= (factions[f].artBudget / (100/budgetDeplationRate)) / iterationsPerDay * 1.95
             factions[f].counterIntel[i] = factions[f].counterIntel[i-1] + (e * factions[f].counterIntelBudget / iterationsPerDay * 24)
             factions[f].counterIntelBudget -= (factions[f].counterIntelBudget / (100/budgetDeplationRate)) / iterationsPerDay * 1.95
+
+            factions[f].points[i] = l*factions[f].tech[i-1] + m*factions[f].military[i-1] + n*factions[f].ressources[i-1] + o*factions[f].art[i-1] + p*factions[f].money[i-1]
+            factions[f].setClassement( (factions[f].points[i] ** 2) / (10 * totalPoints) )
 
     setLastComputedIteration(max(lastComputedIteration, computeUpToIteration))
     if lastComputedIteration == iterations:
