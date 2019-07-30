@@ -1,13 +1,13 @@
 import numpy as np
 from math import floor
-from termcolor import cprint # for warnings
+from termcolor import cprint # for warnings ; only works for me in Git Bash
 
 #######################################################################################################################
 ###################################################### CONSTANTS ######################################################
 #######################################################################################################################
 
 dayStart = 15 # jour début du jeu (0h00)
-dayEnd = 28 # jour fin du jeu (23h59)
+dayEnd = 27 # jour fin du jeu (23h59)
 dt = 15 # [min] (fine tuned for value:60 ; but stable)
 t = np.arange(dayStart, dayEnd+1.01, dt/1440)
 iterations = int((dayEnd - dayStart + 1) * 24 * (60/dt))
@@ -18,7 +18,7 @@ Militaire = 1
 Ressources = 2
 Art = 3
 CountreEspionnage = 4
-FACTIONS = ['Staff', 'Pumas', 'Grizzlis', 'Cobras', 'Jaguars']
+FACTIONS = ['Pumas', 'Grizzlis', 'Cobras', 'Jaguars']
 factions = None
 startMoney = 1000
 startValueDomain = 1000
@@ -267,6 +267,7 @@ class Faction:
         string += '\n  Art  : ' + str(self.art[lastComputedIteration])
         string += '\n  CE   : ' + str(self.counterIntel[lastComputedIteration])
         string += '\n  #    : ' + str(self.points[lastComputedIteration])
+        string += '\n  Class: ' + str(self.classement)
         for a in self.agents:
             string += '\n  ' + str(a)
 
@@ -317,9 +318,9 @@ def setLastComputedIteration(iterationNb):
     lastComputedIteration = iterationNb
 def setLCI(iterationNb): # short
     setLastComputedIteration(iterationNb)
-def setFactions(s, p, g, c, j):
+def setFactions(p, g, c, j):
     global factions
-    factions = [s, p, g, c, j]
+    factions = [p, g, c, j]
 
 def assertMissionFeasability(agent, budget):
     return agent.state == STATE_DEPLOYED and agent.targetFaction.name != agent.parentFaction.name and budget <= agent.parentFaction.money[lastComputedIteration]
@@ -343,7 +344,7 @@ def advanceUntil(day, hour, minute):
     computeUpToIteration = int(min(iterations, (day - dayStart) * 24 * (60/dt) + floor(60*hour/dt) + floor(minute/dt)))
     iterationsPerDay = (1440/dt)
     for i in range(lastComputedIteration+1, computeUpToIteration+1, 1): # for every turn
-        print('---------------------- TURN', dayStart + i/iterationsPerDay, '----------------------')
+        print('---------------------- TURN %.2f ----------------------' % (dayStart + i/iterationsPerDay))
 
         ''' INCREMENT INSIGHT FOR ALL DEPLOYED SPIES '''
 
@@ -411,12 +412,12 @@ def advanceUntil(day, hour, minute):
 #######################################################################################################################
 
 
-staff = Faction(FACTIONS[0], ['Hokkaido', 'Otocyon', 'Ocelot', 'Brocard', 'Douc', 'Alpaga', 'Gerfaut', 'Bourbour'])
-pumas = Faction(FACTIONS[1], ['Muscardin', 'Gulawani', 'Ouandji', 'Castor', 'Nanuk', 'Racoon', 'Dhole', 'Balkanski', 'Pierric', 'Emeric'])
-grizzlis = Faction(FACTIONS[2], ['Oncilla', 'Ligoni', 'Cheetah', 'Akita', 'Isard', 'Panthère', 'Busard', 'Jacques', 'Stephan'])
-cobras = Faction(FACTIONS[3], ['Okapi', 'Lionceau', 'Suricate', 'Hobereau', 'Margay', 'Capybara', 'Kodiak', 'Lancelot', 'Grégoire'])
-jaguars = Faction(FACTIONS[4], ['Aratinga', 'Baribal', 'Cheveche', 'Madoqua', 'Crecerelle', 'Bengal', 'Lynx', 'Milan', 'Matteo', 'Adrien'])
+pumas = Faction(FACTIONS[0], ['Muscardin', 'Gulawani', 'Ouandji', 'Castor', 'Nanuk', 'Racoon', 'Dhole', 'Balkanski', 'Pierric', 'Emeric'])
+grizzlis = Faction(FACTIONS[1], ['Oncilla', 'Ligoni', 'Cheetah', 'Akita', 'Isard', 'Panthère', 'Busard', 'Jacques', 'Stephan'])
+cobras = Faction(FACTIONS[2], ['Okapi', 'Lionceau', 'Suricate', 'Hobereau', 'Margay', 'Capybara', 'Kodiak', 'Lancelot', 'Grégoire'])
+jaguars = Faction(FACTIONS[3], ['Aratinga', 'Baribal', 'Cheveche', 'Madoqua', 'Crecerelle', 'Bengal', 'Lynx', 'Milan', 'Matteo', 'Adrien'])
+# staff = Faction(FACTIONS[4], ['Hokkaido', 'Otocyon', 'Ocelot', 'Brocard', 'Douc', 'Alpaga', 'Gerfaut', 'Bourbour'])
 
-setFactions(staff, pumas, grizzlis, cobras, jaguars)
+setFactions(pumas, grizzlis, cobras, jaguars)
 
     

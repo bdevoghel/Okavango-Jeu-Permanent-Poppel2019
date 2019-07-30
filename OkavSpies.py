@@ -24,12 +24,11 @@ else:
     factionsFileName = 'pickles/factions_upToIter' + str(lastPickleIteration) + '.pkl'
     with open(factionsFileName, 'rb') as infile:
         factions = pickle.load(infile)
-    staff = factions[0]
-    pumas = factions[1]
-    grizzlis = factions[2]
-    cobras = factions[3]
-    jaguars = factions[4]
-    setFactions(staff, pumas, grizzlis, cobras, jaguars)
+    pumas = factions[0]
+    grizzlis = factions[1]
+    cobras = factions[2]
+    jaguars = factions[3]
+    setFactions(pumas, grizzlis, cobras, jaguars)
 
     utilFileName = 'pickles/util_upToIter' + str(lastPickleIteration) + '.pkl'
     with open(utilFileName, 'rb') as infile:
@@ -39,7 +38,7 @@ else:
 
 #######################################################################################################################
 
-if newGame:
+if newGame: # Before correction
     advanceUntil(15, 16, 0)
 
     advanceUntil(15, 22, 20)
@@ -232,6 +231,121 @@ cprint('Game saved here at iteration ' + str(getLCI()), 'red', attrs=['bold', 'r
 
 advanceUntil(23, 21, 0) # PRINT
 
+grizzlis.invest(Militaire, grizzlis.money[getLCI()]) # STAFF IMPOSED
+
+advanceUntil(23, 21, 29)
+pumas.invest(Militaire, 2000)
+pumas.invest(Tech, 2000)
+pumas.invest(Ressources, 400)
+pumas.agents[6].spy(700)
+
+advanceUntil(23, 22, 0)
+cobras.invest(Militaire, 8000)
+cobras.invest(CountreEspionnage, 2000)
+cobras.invest(Art, 2000)
+cobras.agents[7].recruit(Militaire)
+cobras.agents[7].train(3850)
+cobras.agents[7].deploy(jaguars)
+cobras.agents[4].spy(2000)
+
+advanceUntil(24, 9, 50) # SHOW
+
+advanceUntil(24, 11, 49)
+jaguars.invest(Tech, 100)
+jaguars.invest(Militaire, 100)
+jaguars.invest(Ressources, 100)
+jaguars.invest(Art, 100)
+jaguars.invest(CountreEspionnage, 100)
+
+advanceUntil(24, 12, 0)
+pumas.invest(CountreEspionnage, 2000)
+
+advanceUntil(24, 12, 17)
+grizzlis.agents[7].train(200)
+grizzlis.agents[6].train(200)
+grizzlis.agents[5].train(200)
+grizzlis.agents[0].extract()
+grizzlis.agents[1].extract()
+grizzlis.agents[2].extract()
+grizzlis.invest(CountreEspionnage, 100)
+
+advanceUntil(25, 10, 20) # SHOW
+
+advanceUntil(25, 11, 6)
+pumas.invest(Tech, 20000)
+pumas.invest(Militaire, 20000)
+pumas.invest(Ressources, 50000)
+pumas.invest(Art, 20000)
+pumas.invest(CountreEspionnage, 70000)
+pumas.agents[0].recruit(Art)
+pumas.agents[0].train(20000)
+pumas.agents[0].deploy(jaguars)
+pumas.agents[4].recruit(Ressources)
+pumas.agents[4].train(20000)
+pumas.agents[4].deploy(cobras)
+pumas.agents[6].train(20000)
+pumas.agents[6].deploy(cobras)
+pumas.agents[5].extract()
+pumas.agents[5].recruit(Militaire)
+pumas.agents[5].train(25000)
+pumas.agents[5].deploy(jaguars)
+
+advanceUntil(25, 11, 25)
+jaguars.invest(CountreEspionnage, 27000)
+jaguars.invest(Art, 52000)
+jaguars.agents[4].sabotage(5000)
+
+advanceUntil(25, 11, 31) # SHOW
+
+advanceUntil(27, 10, 50) # SHOW
+
+advanceUntil(27, 10, 58)
+jaguars.invest(CountreEspionnage, jaguars.money[getLCI()] * 0.05)
+jaguars.invest(Tech, jaguars.money[getLCI()] * 0.2)
+jaguars.invest(Militaire, jaguars.money[getLCI()] * 0.7)
+jaguars.agents[0].sabotage(jaguars.money[getLCI()] * 0.0001)
+jaguars.agents[2].sabotage(jaguars.money[getLCI()] * 0.0001)
+jaguars.agents[4].sabotage(jaguars.money[getLCI()] * 0.0001)
+jaguars.agents[5].sabotage(jaguars.money[getLCI()] * 0.0001)
+
+advanceUntil(27, 11, 14)
+pumas.invest(Militaire, pumas.money[getLCI()] * 0.4)
+pumas.invest(CountreEspionnage, pumas.money[getLCI()] * 0.2)
+pumas.agents[0].sabotage(pumas.money[getLCI()] * 0.1)
+pumas.agents[4].sabotage(pumas.money[getLCI()] * 0.1)
+pumas.agents[5].sabotage(pumas.money[getLCI()] * 0.1)
+pumas.agents[6].sabotage(pumas.money[getLCI()] * 0.1)
+
+advanceUntil(27, 11, 22)
+print(cobras)
+cobras.invest(CountreEspionnage, cobras.money[getLCI()] * 0.15)
+cobras.invest(Militaire, cobras.money[getLCI()] * 0.5)
+cobras.agents[0].recruit(Militaire)
+cobras.agents[2].recruit(Tech)
+cobras.agents[5].recruit(Militaire)
+cobras.agents[6].recruit(Tech)
+cobras.agents[0].train(cobras.money[getLCI()] * 0.05)
+cobras.agents[2].train(cobras.money[getLCI()] * 0.05)
+cobras.agents[5].train(cobras.money[getLCI()] * 0.05)
+cobras.agents[6].train(cobras.money[getLCI()] * 0.05)
+cobras.agents[0].deploy(jaguars)
+cobras.agents[2].deploy(jaguars)
+cobras.agents[5].deploy(pumas)
+cobras.agents[6].deploy(pumas)
+
+advanceUntil(27, 15, 22)
+cobras.agents[0].spy(cobras.money[getLCI()] * 0.01875)
+cobras.agents[0].sabotage(cobras.money[getLCI()] * 0.01875)
+cobras.agents[2].spy(cobras.money[getLCI()] * 0.01875)
+cobras.agents[2].sabotage(cobras.money[getLCI()] * 0.01875)
+cobras.agents[5].spy(cobras.money[getLCI()] * 0.01875)
+cobras.agents[5].sabotage(cobras.money[getLCI()] * 0.01875)
+cobras.agents[6].spy(cobras.money[getLCI()] * 0.01875)
+cobras.agents[6].sabotage(cobras.money[getLCI()] * 0.01875)
+
+advanceUntil(27, 22, 0) # SHOW
+
+advanceUntil(28, 0, 0) # END
 
 #######################################################################################################################
 
@@ -252,7 +366,6 @@ if saveState:
 print('Do you want to debug the factions ? (yes/no)')
 userInput = input()
 if userInput == 'yes':
-    # print(staff)
     print(pumas)
     print(grizzlis)
     print(cobras)
